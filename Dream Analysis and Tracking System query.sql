@@ -190,8 +190,46 @@ SELECT u.name, COUNT(dl.log_id) AS total_dreams
    JOIN Dream_Logs dl ON u.user_id = dl.user_id 
    GROUP BY u.name 
    ORDER BY total_dreams DESC;
-
-
    
+CREATE VIEW user_dream_insights AS
+SELECT
+    u.user_id,
+    u.name,
+    u.age,
+    u.email,
+    u.sleep_pattern,
+    dl.dream_description,
+    dl.mood AS dream_mood,
+    dc.category_name AS dream_category,
+    pi.possible_meaning AS insight_meaning,
+    pi.insight_description AS insight_detail,
+    da.advice_title AS advice_title,
+    da.advice_description AS advice_description
+FROM
+    Users u
+JOIN
+    Dream_Logs dl ON u.user_id = dl.user_id
+JOIN
+    Dream_Categories dc ON dl.category_id = dc.category_id
+LEFT JOIN
+    Psychological_Insights pi ON dc.category_id = pi.category_id AND dl.mood = pi.mood
+LEFT JOIN
+    Dream_Advice da ON dc.category_id = da.category_id
+ORDER BY
+    u.name, dl.log_id;
+    
+SELECT * FROM user_dream_insights;
 
-   
+DELIMITER $$
+
+CREATE PROCEDURE GetIrregularSleepUsers()
+BEGIN
+    -- Retrieve names and emails of users with irregular sleep patterns
+    SELECT name, email
+    FROM Users
+    WHERE sleep_pattern = 'Irregular';
+END $$
+
+DELIMITER ;
+
+CALL GetIrregularSleepUsers();
